@@ -21,7 +21,7 @@ public class position {
     if (!gridRef.matches("[A-E][a-e][1-5]")) {
       throw new MalformedParametersException();
     }
-    return new position(gridRef.charAt(0) - 'A', gridRef.charAt(1) - 'a', gridRef.charAt(2) - '1');
+    return new position(gridRef.charAt(0) - 'A', gridRef.charAt(2) - '1', gridRef.charAt(1) - 'a');
   }
 
   public static position fromCoordinates(int x, int y, int z) {

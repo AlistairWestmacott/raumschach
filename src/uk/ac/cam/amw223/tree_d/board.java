@@ -6,6 +6,9 @@ public class board {
 
   private piece[][][] grid = new piece[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
 
+  private boolean whiteHasKing = true;
+  private boolean blackHasKing = true;
+
   public board() {
     for (int i = 0; i < BOARD_SIZE; i++) {
       for (int j = 0; j < BOARD_SIZE; j++) {
@@ -65,12 +68,14 @@ public class board {
     // black and white queens
     grid[1][0][2] = new queen(true);
     grid[3][4][2] = new queen(false);
+  }
 
-
+  public void linkBoardToPieces() {
     for (int i = 0; i < BOARD_SIZE; i++) {
       for (int j = 0; j < BOARD_SIZE; j++) {
         for (int k = 0; k < BOARD_SIZE; k++) {
-          grid[i][j][k].linkBoard(this);
+          if (grid[i][j][k] != null)
+            grid[i][j][k].linkBoard(this);
         }
       }
     }
@@ -92,7 +97,7 @@ public class board {
             result += grid[i][j][k];
           result += " ";
         }
-        result += "| " + j + "\n";
+        result += "| " + (j + 1) + "\n";
       }
       result += "|----|----|----|----|----|\n\n";
     }
@@ -103,12 +108,37 @@ public class board {
     return grid[pos.getI()][pos.getJ()][pos.getK()];
   }
 
+  public boolean hasKing(boolean color) {
+    if (color)
+      return whiteHasKing;
+    else
+      return blackHasKing;
+  }
+
   public void makeMove(position start, position end) throws InvalidMoveException {
+    // piece to move exists
     if (getPiece(start) == null)
       throw new InvalidMoveException(false, true);
-    if (getPiece(start).isWhite() == getPiece(end).isWhite())
+    // piece to move and to take are not the same colour
+    if (getPiece(end) != null && getPiece(start).isWhite() == getPiece(end).isWhite())
       throw new InvalidMoveException(true, false);
+    // piece to move can move in such a way
     if (!getPiece(start).verifyMove(start, end))
       throw new InvalidMoveException(true, false);
+
+    // if taking the king then update hasKing
+    if (grid[end.getI()][end.getJ()][end.getK()] != null &&
+            grid[end.getI()][end.getJ()][end.getK()].getName().equals("king"))
+      if (grid[end.getI()][end.getJ()][end.getK()].isWhite())
+        whiteHasKing = false;
+      else
+        blackHasKing = false;
+    // move piece (overwriting the piece to take if relevant)
+    grid[end.getI()][end.getJ()][end.getK()] = getPiece(start);
+    grid[start.getI()][start.getJ()][start.getK()] = null;
+  }
+
+  public static int boardSize() {
+    return BOARD_SIZE;
   }
 }
