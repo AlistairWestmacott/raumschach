@@ -4,8 +4,6 @@ import org.joml.Vector3i;
 
 public class rook extends piece {
 
-  private static final String name = "rook";
-
   public rook(boolean isWhite) {
     super(isWhite);
   }
@@ -22,10 +20,5 @@ public class rook extends piece {
 
     // must be exactly one of the 3 possibilities
     return a ^ b ^ c;
-  }
-
-  @Override
-  public String toString() {
-    return name.charAt(0) + super.toString();
   }
 }

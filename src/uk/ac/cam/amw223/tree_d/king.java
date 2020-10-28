@@ -4,8 +4,6 @@ import org.joml.Vector3i;
 
 public class king extends piece {
 
-  private static final String name = "king";
-
   public king(boolean isWhite) {
     super(isWhite);
   }
@@ -20,10 +18,5 @@ public class king extends piece {
     //  this is shorter than moving through 2 faces (the shortest illegal move)
     double len = d.length();
     return len > 0 && len < 2;
-  }
-
-  @Override
-  public String toString() {
-    return name.charAt(0) + super.toString();
   }
 }

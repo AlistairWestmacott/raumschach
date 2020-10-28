@@ -4,8 +4,6 @@ import org.joml.Vector3i;
 
 public class bishop extends piece {
 
-  private static final String name = "bishop";
-
   public bishop(boolean isWhite) {
     super(isWhite);
   }
@@ -22,10 +20,5 @@ public class bishop extends piece {
 
     // must be exactly one of the 3 possibilities
     return a ^ b ^ c;
-  }
-
-  @Override
-  public String toString() {
-    return name.charAt(0) + super.toString();
   }
 }

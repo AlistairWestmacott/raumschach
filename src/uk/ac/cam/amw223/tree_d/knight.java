@@ -4,8 +4,6 @@ import org.joml.Vector3i;
 
 public class knight extends piece {
 
-  private static final String name = "knight";
-
   public knight(boolean isWhite) {
     super(isWhite);
   }
@@ -23,11 +21,5 @@ public class knight extends piece {
     d.absolute();
     d.add(1, 1, 1);
     return (d.x + d.y + d.z) == (d.x * d.y * d.z);
-  }
-
-  @Override
-  public String toString() {
-    // knight uses n for board as king uses k
-    return name.charAt(1) + super.toString();
   }
 }

@@ -21,8 +21,12 @@ public class piece {
     return false;
   }
 
+  public String getName() {
+    return this.getClass().getSimpleName();
+  }
+
   @Override
   public String toString() {
-    return isWhite ? "W" : "B";
+    return (isWhite ? "W" : "B") + getName().charAt(0);
   }
 }
