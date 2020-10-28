@@ -1,26 +1,28 @@
 package uk.ac.cam.amw223.tree_d;
 
 public class piece {
-  private pieceType type;
 
   private boolean isWhite;
+  protected board b;
 
-  public piece(pieceType type, boolean isWhite) {
-    this.type = type;
+  public piece(boolean isWhite) {
     this.isWhite = isWhite;
+  }
+
+  public void linkBoard(board b) {
+    this.b = b;
+  }
+
+  public boolean isWhite() {
+    return isWhite;
+  }
+
+  public boolean verifyMove(position start, position end) {
+    return false;
   }
 
   @Override
   public String toString() {
-    String result = "";
-    if (type == pieceType.KNIGHT)
-      result += "N";
-    else
-      result += type.toString().charAt(0);
-    if (isWhite)
-      result += "W";
-    else
-      result += "B";
-    return result;
+    return isWhite ? "W" : "B";
   }
 }
