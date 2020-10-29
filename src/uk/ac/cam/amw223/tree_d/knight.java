@@ -22,4 +22,9 @@ public class knight extends piece {
     d.add(1, 1, 1);
     return (d.x + d.y + d.z) == (d.x * d.y * d.z);
   }
+
+  @Override
+  public String toString() {
+    return (isWhite() ? "W" : "B") + getName().charAt(1);
+  }
 }

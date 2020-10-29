@@ -1,9 +1,12 @@
 package uk.ac.cam.amw223.tree_d;
 
-public class piece {
+import uk.ac.cam.amw223.tinyPlanet.gameObject;
+
+public abstract class piece {
 
   private boolean isWhite;
   protected board b;
+  private gameObject go;
 
   public piece(boolean isWhite) {
     this.isWhite = isWhite;
@@ -23,6 +26,14 @@ public class piece {
 
   public String getName() {
     return this.getClass().getSimpleName();
+  }
+
+  public gameObject getGameObject() {
+    return go;
+  }
+
+  public void initialiseGraphics() {
+    go = new gameObject(getName(), (isWhite ? "white" : "black"));
   }
 
   @Override

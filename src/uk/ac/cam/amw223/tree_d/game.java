@@ -1,5 +1,7 @@
 package uk.ac.cam.amw223.tree_d;
 
+import uk.ac.cam.amw223.tinyPlanet.graphicsApplication;
+
 public class game {
   private board b;
 
@@ -35,6 +37,12 @@ public class game {
     player p1 = new player(true);
     player p2 = new player(false);
     game g = new game(p1, p2);
+
+    // todo: the graphics and the game rules need to run in separate threads
+    //graphicsApplication ga = new graphicsApplication();
+    //ga.linkBoard(g.b);
+    //ga.run();
+
     g.playGame();
   }
 }

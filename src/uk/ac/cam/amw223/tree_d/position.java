@@ -28,6 +28,10 @@ public class position {
     return new position(x, y, z);
   }
 
+  public static position fromVector(Vector3i v) {
+    return new position(v.x, v.y, v.z);
+  }
+
   public Vector3i asVector() {
     return new Vector3i(i, j, k);
   }

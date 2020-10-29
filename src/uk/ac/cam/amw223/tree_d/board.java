@@ -1,8 +1,16 @@
 package uk.ac.cam.amw223.tree_d;
 
+import com.sun.jdi.InvalidLineNumberException;
+import org.joml.Vector3i;
+
+import java.util.concurrent.Semaphore;
+
 public class board {
 
   private static final int BOARD_SIZE = 5;
+
+  public Semaphore dirty = new Semaphore(0);
+  public Semaphore accessMutex = new Semaphore(0);
 
   private piece[][][] grid = new piece[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
 
@@ -10,6 +18,10 @@ public class board {
   private boolean blackHasKing = true;
 
   public board() {
+
+    // todo: refactor board generation
+    //  put pieces into separate list for rendering?
+
     for (int i = 0; i < BOARD_SIZE; i++) {
       for (int j = 0; j < BOARD_SIZE; j++) {
         for (int k = 0; k < BOARD_SIZE; k++) {
@@ -68,6 +80,9 @@ public class board {
     // black and white queens
     grid[1][0][2] = new queen(true);
     grid[3][4][2] = new queen(false);
+
+    dirty.release();
+    accessMutex.release();
   }
 
   public void linkBoardToPieces() {
@@ -105,7 +120,16 @@ public class board {
   }
 
   public piece getPiece(position pos) {
-    return grid[pos.getI()][pos.getJ()][pos.getK()];
+    piece p = null;
+    try {
+      accessMutex.acquire();
+      p = grid[pos.getI()][pos.getJ()][pos.getK()];
+    } catch (InterruptedException e) {
+      System.err.println(e.getMessage());
+    } finally {
+      accessMutex.release();
+    }
+    return p;
   }
 
   public boolean hasKing(boolean color) {
@@ -115,9 +139,10 @@ public class board {
       return blackHasKing;
   }
 
-  public void makeMove(position start, position end) throws InvalidMoveException {
+  public void makeMove(position start, position end, boolean turn) throws InvalidMoveException {
+
     // piece to move exists
-    if (getPiece(start) == null)
+    if (getPiece(start) == null || getPiece(start).isWhite() != turn)
       throw new InvalidMoveException(false, true);
     // piece to move and to take are not the same colour
     if (getPiece(end) != null && getPiece(start).isWhite() == getPiece(end).isWhite())
@@ -125,6 +150,22 @@ public class board {
     // piece to move can move in such a way
     if (!getPiece(start).verifyMove(start, end))
       throw new InvalidMoveException(true, false);
+
+    if (!getPiece(start).getName().equals("knight")) {
+      Vector3i d = new Vector3i();
+      Vector3i loop = new Vector3i();
+      end.asVector().sub(start.asVector(), d);
+      int max = Math.max(Math.abs(d.x),
+                Math.max(Math.abs(d.y),
+                         Math.abs(d.z)));
+      d.div(max);
+      for (int i = 1; i <= max; i++) {
+        d.mul(i, loop);
+        if (getPiece(position.fromVector(start.asVector().add(loop))) != null) {
+          throw new InvalidMoveException(true, false);
+        }
+      }
+    }
 
     // if taking the king then update hasKing
     if (grid[end.getI()][end.getJ()][end.getK()] != null &&
@@ -136,6 +177,18 @@ public class board {
     // move piece (overwriting the piece to take if relevant)
     grid[end.getI()][end.getJ()][end.getK()] = getPiece(start);
     grid[start.getI()][start.getJ()][start.getK()] = null;
+    dirty.release();
+  }
+
+  public void initialiseGraphics() {
+    for (int i = 0; i < BOARD_SIZE; i++) {
+      for (int j = 0; j < BOARD_SIZE; j++) {
+        for (int k = 0; k < BOARD_SIZE; k++) {
+          if (grid[i][j][k] != null)
+            grid[i][j][k].initialiseGraphics();
+        }
+      }
+    }
   }
 
   public static int boardSize() {

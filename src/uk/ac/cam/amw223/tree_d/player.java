@@ -64,7 +64,7 @@ public class player {
 
       // validate and make move
       try {
-        b.makeMove(startPos, endPos);
+        b.makeMove(startPos, endPos, isWhite);
       } catch (InvalidMoveException e) {
         if (!e.startValid)
           System.err.println("You cannot move that piece.");
