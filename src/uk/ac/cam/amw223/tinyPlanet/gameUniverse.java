@@ -20,7 +20,8 @@ public class gameUniverse {
     private Vector3f lightSource;
 
     private board b;
-    private int toProcX, toProcY, toProcZ;
+
+    private boolean processed;
 
     public gameUniverse() {
         worldObjects = new ArrayList<>();
@@ -66,59 +67,37 @@ public class gameUniverse {
 //    public gameObject getMainObject() { return worldObjects.get(mainObjectIndex); }
 
     public boolean nextObject() {
-        for (int i = toProcX; i < board.boardSize(); i++) {
-            for (int j = toProcY; j < board.boardSize(); j++) {
-                for (int k = toProcZ + 1; k < board.boardSize(); k++) {
-                    if (b.getPiece(position.fromCoordinates(i, j, j)) != null) {
-                        toProcX = i;
-                        toProcY = j;
-                        toProcZ = k;
-                        return true;
-                    }
-                }
-                toProcZ = -1;
-            }
-            toProcY = 0;
+        if (processed) {
+            processed = false;
+        } else {
+            b.generateModel();
+            processed = true;
         }
-        toProcX = 0;
-        return false;
+        return processed;
     }
 
     public Matrix4f currentModel() {
-        return new Matrix4f(
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                2 * toProcY, 2 * toProcX, 2 * toProcZ, 1
-        );
+        return new Matrix4f();
     }
 
     public String currentTexPath() {
-        return b.getPiece(position.fromCoordinates(toProcX, toProcY, toProcZ)).getGameObject().getTexPath();
+        return "resources/textures/checkerboard.png";
     }
 
     public float[] currentVertexBuffer() {
-        return b.getPiece(position.fromCoordinates(toProcX, toProcY, toProcZ)).getGameObject().getVertexBuffer();
+        return b.getVertexData();
     }
 
     public float[] currentUVBuffer() {
-        return b.getPiece(position.fromCoordinates(toProcX, toProcY, toProcZ)).getGameObject().getUVBuffer();
+      return b.getTextureData();
     }
 
     public float[] currentNormalBuffer() {
-        return b.getPiece(position.fromCoordinates(toProcX, toProcY, toProcZ)).getGameObject().getNormalBuffer();
-    }
-
-    public float[] currentBarycentricBuffer() {
-        return b.getPiece(position.fromCoordinates(toProcX, toProcY, toProcZ)).getGameObject().getBarycentricBuffer();
+      return b.getNormalData();
     }
 
     public int[] currentIndexBuffer() {
-        return b.getPiece(position.fromCoordinates(toProcX, toProcY, toProcZ)).getGameObject().getIndexBuffer();
-    }
-
-    public String currentObjectName() {
-        return b.getPiece(position.fromCoordinates(toProcX, toProcY, toProcZ)).getGameObject().name;
+      return b.getIndexData();
     }
 
     public Vector3f getLightSource() { return lightSource; }

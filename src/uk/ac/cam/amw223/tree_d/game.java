@@ -39,10 +39,17 @@ public class game {
     game g = new game(p1, p2);
 
     // todo: the graphics and the game rules need to run in separate threads
-    //graphicsApplication ga = new graphicsApplication();
-    //ga.linkBoard(g.b);
-    //ga.run();
+    Thread t = new Thread() {
+      @Override
+      public void run() {
+        g.playGame();
+      }
+    };
+    t.setDaemon(true);
+    t.start();
 
-    g.playGame();
+    graphicsApplication ga = new graphicsApplication();
+    ga.linkBoard(g.b);
+    ga.run();
   }
 }

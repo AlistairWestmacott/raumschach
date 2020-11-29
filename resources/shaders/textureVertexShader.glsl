@@ -4,7 +4,6 @@
 layout(location = 0) in vec3 vertexPosition_m;
 layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in vec3 vertexNormal_m;
-layout(location = 3) in vec3 barycentricPosition;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
@@ -60,7 +59,7 @@ void main(){
     // UV of the vertex. No special space for this one.
     UV = vertexUV;
 
-    barycentric = barycentricPosition;
+    barycentric = vec3(0);
 
     cameraPosV = cameraV;
     lightPosV = lightV;

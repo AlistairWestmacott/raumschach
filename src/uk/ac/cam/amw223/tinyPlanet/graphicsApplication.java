@@ -28,6 +28,7 @@ public class graphicsApplication {
 
     private static final int HEIGHT = 1000;
     private static final int WIDTH = 1000;
+    private static final boolean printfps = false;
 
     // The window handle
     private long window;
@@ -189,6 +190,12 @@ public class graphicsApplication {
         lightSourceLocation = glGetUniformLocation(programID, "lightV");
         shadeModeLocation = glGetUniformLocation(programID, "shaderMode");
 
+        vertexBuffer = glGenBuffers();
+        normalBuffer = glGenBuffers();
+        uvBuffer = glGenBuffers();
+        baryBuffer = glGenBuffers();
+        indexBuffer = glGenBuffers();
+
         currentTime = glfwGetTime();
     }
 
@@ -336,34 +343,23 @@ public class graphicsApplication {
                 vao = glGenVertexArrays();
                 glBindVertexArray(vao);
 
-                vertexBuffer = glGenBuffers();
                 glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
                 glBufferData(GL_ARRAY_BUFFER, universe.currentVertexBuffer(), GL_STATIC_DRAW);
                 glVertexAttribPointer(0, 3, GL_FLOAT, false,0, 0);
                 glEnableVertexAttribArray(0);
 
-                uvBuffer = glGenBuffers();
                 glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
                 glBufferData(GL_ARRAY_BUFFER, universe.currentUVBuffer(), GL_STATIC_DRAW);
                 glVertexAttribPointer(1, 2, GL_FLOAT, false,0, 0);
                 glEnableVertexAttribArray(1);
 
-                normalBuffer = glGenBuffers();
                 glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
                 glBufferData(GL_ARRAY_BUFFER, universe.currentNormalBuffer(), GL_STATIC_DRAW);
                 glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
                 glEnableVertexAttribArray(2);
 
-                baryBuffer = glGenBuffers();
-                glBindBuffer(GL_ARRAY_BUFFER, baryBuffer);
-                glBufferData(GL_ARRAY_BUFFER, universe.currentBarycentricBuffer(), GL_STATIC_DRAW);
-                glVertexAttribPointer(3, 3,GL_FLOAT, false, 0, 0);
-                glEnableVertexAttribArray(3);
-
-                indexBuffer = glGenBuffers();
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, universe.currentIndexBuffer(), GL_STATIC_DRAW);
-
 
                 glDrawElements(
                         GL_TRIANGLES,
@@ -372,6 +368,9 @@ public class graphicsApplication {
                         0
                 );
             }
+
+            if (printfps)
+                System.out.printf("FPS: %f\n", 1.0/deltaTime);
 
             glfwSwapBuffers(window);
 
@@ -412,7 +411,6 @@ public class graphicsApplication {
         int InfoLogLength;
 
         // Compile Vertex Shader
-        System.out.printf("Compiling shader : %s\n", vertex_file_path);
         glShaderSource(VertexShaderID, VertexShaderCode);
         glCompileShader(VertexShaderID);
 
@@ -424,7 +422,6 @@ public class graphicsApplication {
         }
 
         // Compile Fragment Shader
-        System.out.printf("Compiling shader : %s\n", fragment_file_path);
         glShaderSource(FragmentShaderID, FragmentShaderCode);
         glCompileShader(FragmentShaderID);
 
@@ -436,7 +433,6 @@ public class graphicsApplication {
         }
 
         // Link the program
-        System.out.println("Linking program");
         int ProgramID = glCreateProgram();
         glAttachShader(ProgramID, VertexShaderID);
         glAttachShader(ProgramID, FragmentShaderID);
