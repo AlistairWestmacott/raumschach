@@ -8,7 +8,7 @@ import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
-import uk.ac.cam.amw223.tree_d.board;
+import uk.ac.cam.amw223.raumschach.board;
 
 import java.io.IOException;
 import java.nio.*;
@@ -106,7 +106,7 @@ public class graphicsApplication {
 
 
         // Create the window
-        window = glfwCreateWindow(WIDTH, HEIGHT, "TreeD", NULL, NULL);
+        window = glfwCreateWindow(WIDTH, HEIGHT, "Raumschach", NULL, NULL);
         if ( window == NULL )
             throw new RuntimeException("Failed to create the GLFW window");
 

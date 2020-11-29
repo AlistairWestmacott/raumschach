@@ -1,9 +1,8 @@
-package uk.ac.cam.amw223.tree_d;
+package uk.ac.cam.amw223.raumschach;
 
 import org.joml.Vector3i;
 
 import java.lang.reflect.MalformedParametersException;
-import java.util.InvalidPropertiesFormatException;
 
 public class position {
   int i;
