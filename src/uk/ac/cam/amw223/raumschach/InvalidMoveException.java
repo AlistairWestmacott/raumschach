@@ -1,4 +1,4 @@
-package uk.ac.cam.amw223.tree_d;
+package uk.ac.cam.amw223.raumschach;
 
 public class InvalidMoveException extends Exception {
 

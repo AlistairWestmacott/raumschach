@@ -1,4 +1,4 @@
-package uk.ac.cam.amw223.tree_d;
+package uk.ac.cam.amw223.raumschach;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package uk.ac.cam.amw223.tree_d;
+package uk.ac.cam.amw223.raumschach;
 
 import uk.ac.cam.amw223.tinyPlanet.gameObject;
 

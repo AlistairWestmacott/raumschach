@@ -8,7 +8,7 @@ import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
-import uk.ac.cam.amw223.tree_d.board;
+import uk.ac.cam.amw223.raumschach.board;
 
 import java.io.IOException;
 import java.nio.*;

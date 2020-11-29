@@ -1,2 +1,2 @@
-# tree-d
+# Raumschach
 3D chess game
