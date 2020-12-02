@@ -141,6 +141,8 @@ public class modelLoader {
                   face[6] = face[7] = face[8] = normals.size();
                   normals.add(new float[]{v1.x, v1.y, v1.z});
                 }
+
+                faces.add(face);
               }
               break;
             case "#":

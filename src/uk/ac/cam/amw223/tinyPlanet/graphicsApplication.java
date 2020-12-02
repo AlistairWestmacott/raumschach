@@ -46,10 +46,8 @@ public class graphicsApplication {
     private int vertexBuffer;
     private int uvBuffer;
     private int normalBuffer;
-    private int baryBuffer;
     private int indexBuffer;
 
-    private Vector4f lightSource = new Vector4f();
     gameObject light;
 
     private Matrix4f projection;
@@ -64,48 +62,32 @@ public class graphicsApplication {
     final static int shadingModes = 4;
 
     public void run() {
-        try {
-            init();
+        init();
+        loop();
 
-            // todo: while (!finished) {finished = loop();}
-            //  this will basically mean that loop only includes loop code and not initialisation code too
-            loop();
+        glfwFreeCallbacks(window);
+        glfwDestroyWindow(window);
 
-            // Free the window callbacks and destroy the window
-            glfwFreeCallbacks(window);
-            glfwDestroyWindow(window);
-
-            // Terminate GLFW and free the error callback
-            glfwTerminate();
-            glfwSetErrorCallback(null).free();
-
-        } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+        glfwTerminate();
+        glfwSetErrorCallback(null).free();
     }
 
-    private void init() throws IOException {
-        // Setup an error callback. The default implementation
-        // will print the error message in System.err.
+    private void init() {
         GLFWErrorCallback.createPrint(System.err).set();
 
-        // Initialize GLFW. Most GLFW functions will not work before doing this.
         if ( !glfwInit() )
             throw new IllegalStateException("Unable to initialize GLFW");
 
-        // Configure GLFW
-        glfwDefaultWindowHints(); // optional, the current window hints are already the default
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        // todo: should this be an option?
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-        // fix version number
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-
-        // Create the window
         window = glfwCreateWindow(WIDTH, HEIGHT, "Raumschach", NULL, NULL);
         if ( window == NULL )
             throw new RuntimeException("Failed to create the GLFW window");
@@ -113,7 +95,7 @@ public class graphicsApplication {
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+                glfwSetWindowShouldClose(window, true);
         });
 
         // Get the thread stack and push a new frame
@@ -121,19 +103,16 @@ public class graphicsApplication {
             IntBuffer pWidth = stack.mallocInt(1); // int*
             IntBuffer pHeight = stack.mallocInt(1); // int*
 
-            // Get the window size passed to glfwCreateWindow
             glfwGetWindowSize(window, pWidth, pHeight);
 
-            // Get the resolution of the primary monitor
-            GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+            GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-            // Center the window
             glfwSetWindowPos(
                     window,
-                    (vidmode.width() - pWidth.get(0)) / 2,
-                    (vidmode.height() - pHeight.get(0)) / 2
+                    (vidMode.width() - pWidth.get(0)) / 2,
+                    (vidMode.height() - pHeight.get(0)) / 2
             );
-        } // the stack frame is popped automatically
+        }
 
         glfwMakeContextCurrent(window);
 
@@ -144,7 +123,11 @@ public class graphicsApplication {
 
         GL.createCapabilities();
 
-        programID = LoadShaders("resources/shaders/textureVertexShader.glsl", "resources/shaders/toonFragmentShader.glsl");
+        try {
+            programID = LoadShaders("resources/shaders/textureVertexShader.glsl", "resources/shaders/toonFragmentShader.glsl");
+        } catch (IOException e) {
+            System.err.println("Unable to load the shaders: " + e.getMessage());
+        }
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -154,7 +137,7 @@ public class graphicsApplication {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_CULL_FACE);
 
-        final float clearCol = 1f;
+        final float clearCol = 0.95f;
         glClearColor(clearCol, clearCol, clearCol, clearCol);
 
         glUseProgram(programID);
@@ -164,19 +147,7 @@ public class graphicsApplication {
         glfwGetWindowSize(window, windowWidth, windowHeight);
 
         universe.init();
-        universe.getCam().setAxisOfRotation(new Vector3f(0, 1, 0));
-
-        // object for the light source
-        light = new gameObject("cube", "checkerboard");
-        light.setRotationSpeed(-0.2);
-        light.setPosition(new Vector3f(-10, 0, 0));
-        universe.addObject(light, false);
-
-        gameObject center = new gameObject("cube", "checkerboard");
-        center.setPosition(new Vector3f(1));
-        universe.addObject(center, true);
-
-        universe.getCam().cycleMode();
+        universe.setLightSource(new Vector3f(5, 20, 5)); // above the middle of the board
 
         projection = new Matrix4f().perspective((float)Math.toRadians(45.0f),
                 (float) windowWidth[0] / (float) windowHeight[0],
@@ -193,8 +164,9 @@ public class graphicsApplication {
         vertexBuffer = glGenBuffers();
         normalBuffer = glGenBuffers();
         uvBuffer = glGenBuffers();
-        baryBuffer = glGenBuffers();
         indexBuffer = glGenBuffers();
+
+        loadTexture(universe.currentTexPath());
 
         currentTime = glfwGetTime();
     }
@@ -206,14 +178,9 @@ public class graphicsApplication {
 
         Matrix3f mvpNormal;
 
-        int texID;
-
-        int triangleIndex = 0;
-
         float deltaTime;
 
         boolean cameraToggle = false, shadingToggle = false;
-        int last = 0;
 
         // todo: how is the callback different to the getKey part of the while condition? Can one be trimmed? why?
         while ( !glfwWindowShouldClose(window) && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) {
@@ -221,9 +188,9 @@ public class graphicsApplication {
             Vector3f velocity = new Vector3f();
             float dv = 1.5f;
             if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-                dv = 3;
+                dv *= 2;
             }
-            double dtheta = 0.75f;
+            double dtheta = 0.5f;
 
             // movement
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -255,18 +222,6 @@ public class graphicsApplication {
                 universe.getCam().setRotationSpeed(0);
             }
 
-            // camera/shading settings should only be cycled one step per button press
-            // not one step per frame
-
-            // camera mode
-            if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
-                if (!cameraToggle) {
-                    universe.getCam().cycleMode();
-                    cameraToggle = true;
-                }
-            } else {
-                cameraToggle = false;
-            }
             // shading mode
             if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
                 if (!shadingToggle) {
@@ -277,7 +232,6 @@ public class graphicsApplication {
                 shadingToggle = false;
             }
 
-
             glUniform1i(shadeModeLocation, shadingMode);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -287,30 +241,26 @@ public class graphicsApplication {
             deltaTime = (float)(currentTime - lastTime);
 
             universe.nextFrame(deltaTime);
-//            lightSource = new Vector3f(universe.getMainObject().position());
-//
-//            lightSource.mul(-1);
 
             view = universe.getCam().viewMatrix();
-
-            lightSource = new Vector4f(light.position(), 1);
-
-            lightSource.mul(view);
 
             cameraHomo = new Vector4f(universe.getCam().position(), 1);
             cameraHomo.mul(view);
 
-//            lightSource.mul(light.modelMatrix());
-//            lightSource.mul(view);
-//            lightSource.mul(projection);
+            // camera should never get to w = 0 so it should throw an exception
+            cameraHomo.mul(cameraHomo.w);
 
-            normaliseHomogeneous(lightSource);
-            normaliseHomogeneous(cameraHomo);
+            glUniform3fv(cameraLocation, new float[]{
+                    cameraHomo.x,
+                    cameraHomo.y,
+                    cameraHomo.z
+            });
+            glUniform3fv(lightSourceLocation, new float[]{
+                    universe.getLightSource().x,
+                    universe.getLightSource().y,
+                    universe.getLightSource().z
+            });
 
-            glUniform3fv(cameraLocation, new float[]{cameraHomo.x, cameraHomo.y, cameraHomo.z});
-            glUniform3fv(lightSourceLocation, new float[]{lightSource.x, lightSource.y, lightSource.z});
-
-            // model loop, one iteration per model in the scene
             while (universe.nextObject()) {
 
                 model = universe.currentModel();
@@ -328,18 +278,10 @@ public class graphicsApplication {
 
                 glUniformMatrix3fv(mvpNormalLocation, false, mvpNormal.get(new float[9]));
 
-
                 view.mul(model, mv);
 
                 glUniformMatrix4fv(mvLocation, false, mv.get(new float[16]));
 
-
-                texID = loadTexture(universe.currentTexPath());
-
-
-                // todo: which parts of the buffer uploading can be moved to init?
-
-                // todo: what does this line do? Is it a remnant from an older version of the code?
                 vao = glGenVertexArrays();
                 glBindVertexArray(vao);
 
@@ -378,15 +320,6 @@ public class graphicsApplication {
         }
     }
 
-    private void normaliseHomogeneous(Vector4f v) {
-        if (v.w != 1) {
-            v.x = v.x / v.w;
-            v.y = v.y / v.w;
-            v.z = v.z / v.w;
-            v.w = 1;
-        }
-    }
-
     public void uploadMatrix4f(Matrix4f m, String target) {
         int location = glGetUniformLocation(programID, target);
         FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
@@ -397,20 +330,14 @@ public class graphicsApplication {
 
     static int LoadShaders(String vertex_file_path, String fragment_file_path) throws IOException {
 
-        // Create the shaders
         int VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         int FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-        // Read the Vertex Shader code from the file
         String VertexShaderCode = new String(Files.readAllBytes(Path.of(vertex_file_path)));
-
-        // Read the Fragment Shader code from the file
         String FragmentShaderCode = new String(Files.readAllBytes(Path.of(fragment_file_path)));
 
-        int Result = GL_FALSE;
         int InfoLogLength;
 
-        // Compile Vertex Shader
         glShaderSource(VertexShaderID, VertexShaderCode);
         glCompileShader(VertexShaderID);
 
@@ -418,10 +345,9 @@ public class graphicsApplication {
         glGetShaderi(VertexShaderID, GL_COMPILE_STATUS);
         InfoLogLength = glGetShaderi(VertexShaderID, GL_INFO_LOG_LENGTH);
         if ( InfoLogLength > 0 ){
-            System.out.println(glGetShaderInfoLog(VertexShaderID));
+            System.err.println(glGetShaderInfoLog(VertexShaderID));
         }
 
-        // Compile Fragment Shader
         glShaderSource(FragmentShaderID, FragmentShaderCode);
         glCompileShader(FragmentShaderID);
 
@@ -429,7 +355,7 @@ public class graphicsApplication {
         glGetShaderi(FragmentShaderID, GL_COMPILE_STATUS);
         InfoLogLength = glGetShaderi(FragmentShaderID, GL_INFO_LOG_LENGTH);
         if ( InfoLogLength > 0 ){
-            System.out.println(glGetShaderInfoLog(FragmentShaderID));
+            System.err.println(glGetShaderInfoLog(FragmentShaderID));
         }
 
         // Link the program
@@ -442,7 +368,7 @@ public class graphicsApplication {
         glGetProgrami(ProgramID, GL_LINK_STATUS);
         InfoLogLength = glGetProgrami(ProgramID, GL_INFO_LOG_LENGTH);
         if ( InfoLogLength > 0 ){
-            System.out.println(glGetProgramInfoLog(ProgramID));
+            System.err.println(glGetProgramInfoLog(ProgramID));
         }
 
         glDetachShader(ProgramID, VertexShaderID);
@@ -458,7 +384,6 @@ public class graphicsApplication {
         int textureID;
 
         textureLoader tex = new textureLoader(path);
-
 
         textureID = glGenTextures();
 
