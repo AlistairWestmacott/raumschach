@@ -152,7 +152,7 @@ public class board {
                 if (grid[i][j][k].isWhite()) {
                   textureBuffers.add(whiteTextureData[count]);
                 } else {
-                  textureBuffers.add(blackTextureData[2 * count]);
+                  textureBuffers.add(blackTextureData[count]);
                 }
               }
               for (int index : grid[i][j][k].getGameObject().getIndexBuffer()) {
