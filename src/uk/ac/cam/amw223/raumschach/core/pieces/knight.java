@@ -1,8 +1,13 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.core.pieces;
 
 import org.joml.Vector3i;
+import uk.ac.cam.amw223.raumschach.core.position;
 
-public class knight extends piece {
+import java.io.Serializable;
+
+public class knight extends piece implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   public knight(boolean isWhite) {
     super(isWhite);

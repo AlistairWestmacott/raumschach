@@ -1,8 +1,13 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.core.pieces;
 
 import org.joml.Vector3i;
+import uk.ac.cam.amw223.raumschach.core.position;
 
-public class queen extends piece {
+import java.io.Serializable;
+
+public class queen extends piece implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   public queen(boolean isWhite) {
     super(isWhite);
@@ -12,6 +17,7 @@ public class queen extends piece {
   public boolean verifyMove(position start, position end) {
     Vector3i d = new Vector3i();
     end.asVector().sub(start.asVector(), d);
+    d.absolute();
 
     // Any component of the move can be 0 (but not all of them)
     //  all non-zero components must be equal
@@ -20,8 +26,8 @@ public class queen extends piece {
 
     int l = Math.max(d.x, Math.max(d.y, d.z));
     return
-            d.x == 0 || d.x == l &&
-            d.y == 0 || d.y == l &&
-            d.z == 0 || d.z == l;
+            (d.x == 0 || d.x == l) &&
+            (d.y == 0 || d.y == l) &&
+            (d.z == 0 || d.z == l);
   }
 }

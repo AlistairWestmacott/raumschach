@@ -1,10 +1,14 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.core;
 
 import org.joml.Vector3i;
 
+import java.io.Serializable;
 import java.lang.reflect.MalformedParametersException;
 
-public class position {
+public class position implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
   int i;
   int j;
   int k;
@@ -45,5 +49,10 @@ public class position {
 
   public int getK() {
     return k;
+  }
+
+  @Override
+  public String toString() {
+    return "<" + i + ", " + j + ", " + k + ">";
   }
 }

@@ -1,38 +1,33 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.online;
+
+import uk.ac.cam.amw223.raumschach.core.Move;
+import uk.ac.cam.amw223.raumschach.core.player;
+import uk.ac.cam.amw223.raumschach.core.position;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.MalformedParametersException;
 
-public class player {
+public class OnlinePlayerClient extends player {
 
-  boolean isWhite;
-  private board b;
-  private String colourName;
-
-  public player(boolean isWhite) {
-    this.isWhite = isWhite;
-    if (isWhite)
-      colourName = "White";
-    else
-      colourName = "Black";
+  public OnlinePlayerClient(boolean isWhite) {
+    super(isWhite);
+    System.out.println("You are " + (isWhite? "white" : "black"));
   }
 
-  public void linkBoard(board b) {
-    this.b = b;
+  public void gameSetup(boolean isWhite) {
+
   }
 
-  public void takeTurn() {
-    System.out.println(b);
-    boolean valid = false;
-
+  @Override
+  public Move getMove() {
     String start, end;
     position startPos, endPos;
 
-
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-    while (!valid) {
+
+    while (true) {
 
       // Read player start position
       try {
@@ -62,17 +57,8 @@ public class player {
         continue;
       }
 
-      // validate and make move
-      try {
-        b.makeMove(startPos, endPos, isWhite);
-      } catch (InvalidMoveException e) {
-        if (!e.startValid)
-          System.err.println("You cannot move that piece.");
-        else if (!e.endValid)
-          System.err.println("You cannot move to that space on the board.");
-        continue;
-      }
-      valid = true;
+      return new Move(startPos, endPos);
     }
   }
+
 }

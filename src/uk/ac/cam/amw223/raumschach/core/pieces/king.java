@@ -1,8 +1,13 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.core.pieces;
 
 import org.joml.Vector3i;
+import uk.ac.cam.amw223.raumschach.core.position;
 
-public class king extends piece {
+import java.io.Serializable;
+
+public class king extends piece implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   public king(boolean isWhite) {
     super(isWhite);
@@ -17,6 +22,6 @@ public class king extends piece {
     //  the longest move it can make is through a vertex which will have length sqrt(3)
     //  this is shorter than moving through 2 faces (the shortest illegal move)
     double len = d.length();
-    return len > 0 && len < 2;
+    return (len > 0) && (len < 2);
   }
 }

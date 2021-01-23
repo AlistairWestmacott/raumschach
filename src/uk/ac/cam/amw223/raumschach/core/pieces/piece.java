@@ -1,19 +1,15 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.core.pieces;
 
+import uk.ac.cam.amw223.raumschach.core.position;
 import uk.ac.cam.amw223.tinyPlanet.gameObject;
 
 public abstract class piece {
 
   private boolean isWhite;
-  protected board b;
   private gameObject go;
 
   public piece(boolean isWhite) {
     this.isWhite = isWhite;
-  }
-
-  public void linkBoard(board b) {
-    this.b = b;
   }
 
   public boolean isWhite() {

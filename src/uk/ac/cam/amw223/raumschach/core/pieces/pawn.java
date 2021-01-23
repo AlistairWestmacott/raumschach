@@ -1,11 +1,20 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.core.pieces;
 
 import org.joml.Vector3i;
+import uk.ac.cam.amw223.raumschach.core.board;
+import uk.ac.cam.amw223.raumschach.core.position;
 
-public class pawn extends piece {
+import java.io.Serializable;
 
-  public pawn(boolean isWhite) {
+public class pawn extends piece implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  private board b;
+
+  public pawn(boolean isWhite, board board) {
     super(isWhite);
+    this.b = board;
   }
 
   @Override

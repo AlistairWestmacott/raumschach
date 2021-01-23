@@ -2,7 +2,7 @@ package uk.ac.cam.amw223.tinyPlanet;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import uk.ac.cam.amw223.raumschach.board;
+import uk.ac.cam.amw223.raumschach.core.board;
 
 import java.util.ArrayList;
 import java.util.List;

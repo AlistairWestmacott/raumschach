@@ -1,8 +1,13 @@
-package uk.ac.cam.amw223.raumschach;
+package uk.ac.cam.amw223.raumschach.core.pieces;
 
 import org.joml.Vector3i;
+import uk.ac.cam.amw223.raumschach.core.position;
 
-public class dos extends piece {
+import java.io.Serializable;
+
+public class dos extends piece implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   public dos(boolean isWhite) {
     super(isWhite);
@@ -15,6 +20,6 @@ public class dos extends piece {
 
     // move must not be zero and must have equal components
     d.absolute();
-    return d.x != 0 && d.x == d.y && d.y == d.z;
+    return (d.x != 0) && (d.x == d.y) && (d.y == d.z);
   }
 }
