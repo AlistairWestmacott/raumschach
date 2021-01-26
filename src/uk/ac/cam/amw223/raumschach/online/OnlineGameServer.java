@@ -19,10 +19,14 @@ public class OnlineGameServer extends game {
   private ClientHandler ch1;
   private ClientHandler ch2;
 
-  public OnlineGameServer(ClientHandler p1, ClientHandler p2) {
+  private final SafeQueue<Integer> lobby;
+
+  public OnlineGameServer(ClientHandler p1, ClientHandler p2, SafeQueue<Integer> lobby) {
     super(p1, p2);
     this.ch1 = p1;
     this.ch2 = p2;
+
+    this.lobby = lobby;
 
     Thread checkClientsConnected = new Thread (() -> {
       while (true) {
@@ -32,8 +36,12 @@ public class OnlineGameServer extends game {
           finished = true;
           if (ch1.isConnected()) {
             ch1.sendMessage(new GameEndMessage(true));
+            lobby.add(ch1.getID());
+            synchronized (lobby) {lobby.notify();}
           } else if (ch2.isConnected()) {
             ch2.sendMessage(new GameEndMessage(false));
+            lobby.add(ch2.getID());
+            synchronized (lobby) {lobby.notify();}
           } // otherwise both are gone and the game doesn't matter anymore
           return;
         }
@@ -44,7 +52,7 @@ public class OnlineGameServer extends game {
   }
 
   @Override
-  public void playGame() {
+  public synchronized void playGame() {
     Move moveToMake;
     Message msg;
     boolean hasGameEnded = false;
@@ -67,19 +75,25 @@ public class OnlineGameServer extends game {
         else
           msg = new MoveResultMessage(moveToMake, turn);
 
+        turn = !turn;
       } catch (InvalidMoveException e) {
         msg = new MoveResultMessage(e, turn);
       }
       ch1.sendMessage(msg);
       ch2.sendMessage(msg);
-      turn = !turn;
 
       // need to send game end messages before the server cleans up the game
       finished = hasGameEnded;
     }
+
+    synchronized (lobby) {
+      lobby.add(ch1.getID());
+      lobby.add(ch2.getID());
+      lobby.notify();
+    }
   }
 
-  public boolean isFinished() {
+  public synchronized boolean isFinished() {
     // fairly sure java wouldn't need locks for read only primitive types in classes
     return finished;
   }

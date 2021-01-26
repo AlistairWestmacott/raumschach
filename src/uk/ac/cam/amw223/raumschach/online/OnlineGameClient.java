@@ -1,9 +1,6 @@
 package uk.ac.cam.amw223.raumschach.online;
 
-import uk.ac.cam.amw223.raumschach.core.InvalidMoveException;
-import uk.ac.cam.amw223.raumschach.core.Move;
-import uk.ac.cam.amw223.raumschach.core.game;
-import uk.ac.cam.amw223.raumschach.core.player;
+import uk.ac.cam.amw223.raumschach.core.*;
 import uk.ac.cam.amw223.raumschach.online.messages.*;
 
 import java.io.*;
@@ -70,8 +67,9 @@ public class OnlineGameClient extends game {
           localPlayerColour = ((GameStartMessage) message).isWhite();
           localPlayer = new OnlinePlayerClient(((GameStartMessage) message).isWhite());
           gameRunning = true;
-          // white makes first move
+          b = new board();
           System.out.println(b);
+          // white makes first move
           if (localPlayerColour) {
             message = new MoveMessage(getMove());
             try {
@@ -111,6 +109,8 @@ public class OnlineGameClient extends game {
           System.out.println("You are the "
                   + (((GameEndMessage) message).getWinner() == localPlayerColour? "winner!" : "loser."));
           gameRunning = false;
+        } else {
+          System.err.println(message.getClass().toString() + " message received out of order");
         }
       }
     }

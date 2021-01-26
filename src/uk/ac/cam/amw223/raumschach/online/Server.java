@@ -26,7 +26,7 @@ public class Server {
         return;
       }
     } else {
-      System.err.println("[Server] Usage: java RaumschachServer <port>");
+      System.err.println("[Server] Usage: java  RaumschachServer <port>");
       return;
     }
 
@@ -34,8 +34,7 @@ public class Server {
     SafeQueue<Integer> lobby = new SafeQueue<>();
     List<OnlineGameServer> ongoing = new ArrayList<>();
 
-    Map<Integer, InputStream> inStreams = new HashMap<>();
-    Map<Integer, OutputStream> outStreams = new HashMap<>();
+    Map<Integer, ClientHandler> clientHandlers = new HashMap<>();
 
     try {
       ss = new ServerSocket(port);
@@ -49,6 +48,7 @@ public class Server {
     Thread cleanupFinishedGames = new Thread(() -> {
       while (true) {
         synchronized (ongoing) {
+          //ongoing.wait();
           int i = 0;
           while (i < ongoing.size()) {
             OnlineGameServer g = ongoing.get(i);
@@ -65,33 +65,39 @@ public class Server {
       }
     });
     cleanupFinishedGames.setDaemon(true);
-    cleanupFinishedGames.start();
+    //cleanupFinishedGames.start();
 
     Thread createGames = new Thread(() -> {
       while (true) {
         synchronized (lobby) {
+          try {
+            lobby.wait();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
           while (lobby.size() > 1) {
             int ID1 = lobby.get();
             int ID2 = lobby.get();
-            ClientHandler p1 = new ClientHandler(true, ID1, inStreams.get(ID1), outStreams.get(ID1));
-            ClientHandler p2 = new ClientHandler(false, ID2, inStreams.get(ID2), outStreams.get(ID2));
 
-            if (!(p1.isConnected() && p2.isConnected())) {
+            ClientHandler p1 = clientHandlers.get(ID1);
+            ClientHandler p2 = clientHandlers.get(ID2);
+
+            if (p1.isConnected() && p2.isConnected()) {
+              p1.startGame(true);
+              p2.startGame(false);
+              OnlineGameServer newGame = new OnlineGameServer(p1, p2, lobby);
+              ongoing.add(newGame);
+              Thread t = new Thread(newGame::playGame);
+              t.start();
+            } else {
               if (p1.isConnected()) lobby.add(p1.getID());
               else System.out.println("[Client" + p1.getID() + "] Disconnected");
 
               if (p2.isConnected()) lobby.add(p2.getID());
               else System.out.println("[Client" + p2.getID() + "] Disconnected");
-
-            } else {
-              OnlineGameServer newGame = new OnlineGameServer(p1, p2);
-              ongoing.add(newGame);
-              Thread t = new Thread(newGame::playGame);
-              t.start();
             }
           }
         }
-        yield();
       }
     });
     createGames.setDaemon(true);
@@ -103,9 +109,10 @@ public class Server {
         client = ss.accept();
         int ID = counter.next();
         System.out.println("[Server] New connection: Client" + ID);
-        inStreams.put(ID, client.getInputStream());
-        outStreams.put(ID, client.getOutputStream());
+        ClientHandler ch = new ClientHandler(ID, client.getInputStream(), client.getOutputStream());
+        clientHandlers.put(ID, ch);
         lobby.add(ID);
+        synchronized (lobby) {lobby.notify();}
       } catch (IOException e) {
         System.err.println("IOException when accepting on ServerSocket. Is this the client disconnecting?");
         e.printStackTrace();

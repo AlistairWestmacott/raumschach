@@ -19,8 +19,8 @@ public class ClientHandler extends player {
 
   private final Queue<Move> moveQueue = new LinkedList<>();
 
-  public ClientHandler(boolean isWhite, int ID, final InputStream ins, final OutputStream outs) {
-    super(isWhite);
+  public ClientHandler(int ID, final InputStream ins, final OutputStream outs) {
+    super(true); // input values don't matter at this point
     this.ID = ID;
 
     setConnected(true);
@@ -105,7 +105,10 @@ public class ClientHandler extends player {
     out.setDaemon(true);
     // start reading later
     out.start();
+  }
 
+  public void startGame(boolean isWhite) {
+    this.isWhite = isWhite;
     sendMessage(new GameStartMessage(isWhite));
   }
 
@@ -140,6 +143,10 @@ public class ClientHandler extends player {
 
   public int getID() {
     return ID;
+  }
+
+  public synchronized void setWhite(boolean isWhite) {
+    this.isWhite = isWhite;
   }
 
 }
